@@ -52,7 +52,7 @@ jobs:
       #  run: terraform plan -out=tfplan
         
       - name: Terraform Destroy
-        run: terraform destroy -force
+        run: terraform destroy -auto-approve
 
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
