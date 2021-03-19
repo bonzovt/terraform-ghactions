@@ -1,0 +1,61 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Terraform GitHub Action Demo
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    
+    env:
+      ARM_SUBSCRIPTION_ID: '92b7580f-71d9-4fe1-9092-f6d453e360e6'
+      ARM_TENANT_ID: 'ea5279c6-9745-466f-9075-3223b8b03d3a'
+      ARM_CLIENT_ID: 'fdb40ffe-9968-40fb-9155-4f035d5904d0'
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      AZURE_STORAGE: 'terraformdemo1201'
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      
+      - name: Azure Login
+        uses: Azure/login@v1
+        with:
+          # Paste output of `az ad sp create-for-rbac` as value of secret variable: AZURE_CREDENTIALS
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Runs a single command using the runners shell
+      - name: Build Terraform State
+        run: chmod +x ./tfstate.sh && ./tfstate.sh ${{ env.AZURE_STORAGE }}
+        
+      - name: HashiCorp - Setup Terraform
+        uses: hashicorp/setup-terraform@v1.2.1
+        
+      - name: Terraform init
+        run: terraform init -backend-config="storage_account_name=${{ env.AZURE_STORAGE }}
+        
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+        
+      - name: Terraform Apply
+        run: terraform apply tfplan
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
